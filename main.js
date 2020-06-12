@@ -82,7 +82,7 @@ function setup() {
 	let tile_count_slider_label = createP(tile_count_slider_label_text)
 	tile_count_slider_label.position(canvas.canvas.offsetLeft+canvas.width+tile_count_slider.width/2+20+textWidth(tile_count_slider_label_text)*2, canvas.canvas.offsetTop+40-textLeading())
 
-	let controls_help = ["<b>Controls</b>:", "<b>Left Mouse</b>: set <b><span style='color: rgb(125, 125, 125)'>WALL</span></b>", "<b>Right Mouse</b>: clear <b><span style='color: rgb(125, 125, 125)'>WALL</span></b>", "<b>S</b>: set <b><span style='color: rgb(245, 212, 0)'>START</span></b>", "<b>F</b>: set <b><span style='color: rgb(168, 0, 224)'>FINISH</span></b>"]
+	let controls_help = ["<b>Controls</b>:", "<b>Left Mouse</b>: set <b><span style='color: rgb(100, 100, 100)'>WALL</span></b>", "<b>Right Mouse</b>: clear <b><span style='color: rgb(100, 100, 100)'>WALL</span></b>", "<b>S</b>: set <b><span style='color: rgb(245, 212, 0)'>START</span></b>", "<b>F</b>: set <b><span style='color: rgb(168, 0, 224)'>FINISH</span></b>"]
 	for(let c = 0; c < controls_help.length; c++) {
 		let text_content = controls_help[c]
 		let text = createP(text_content)
@@ -221,7 +221,7 @@ function drawGridContent() {
 function drawGridContentArr(arr, open_custom) {
 	for(let i = 0; i < arr.length; i++) {
 		if(open_custom) {
-			if(arr[i].wall) fill(125, 125, 125) // wall
+			if(arr[i].wall) fill(100, 100, 100) // wall
 			else fill("rgba(0, 255, 0, "+(path_found?path_found_alpha:1)+")")
 		}
 		drawTile(arr[i].xy)
