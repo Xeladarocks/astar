@@ -1,6 +1,6 @@
 
 
-let debug = true;
+let debug = false;
 let tile_count = 20;
 
 let canvas;
@@ -60,9 +60,16 @@ function setup() {
 		allow_diagonal = !allow_diagonal
 	});
 
+	let debug_checkbox_text = "Debug"
+	let debug_checkbox = createCheckbox(debug_checkbox_text, debug);
+	debug_checkbox.position(canvas.canvas.offsetLeft+canvas.width+textWidth(debug_checkbox_text), canvas.canvas.offsetTop+canvas.height-debug_checkbox.height)
+	debug_checkbox.changed(() => {
+		debug = !debug
+	});
+
 	let tile_count_slider = createSlider(10, 50, tile_count);
 	tile_count_slider.position(canvas.canvas.offsetLeft+canvas.width+tile_count_slider.width/2+20, canvas.canvas.offsetTop+40);
-	tile_count_slider.input((val) => {
+	tile_count_slider.input(() => {
 		tile_count = tile_count_slider.value()
 		tile_size_x = canvas.width / tile_count
 		tile_size_y = canvas.height / tile_count
@@ -72,6 +79,13 @@ function setup() {
 	let tile_count_slider_label_text = "Tile Count"
 	let tile_count_slider_label = createP(tile_count_slider_label_text)
 	tile_count_slider_label.position(canvas.canvas.offsetLeft+canvas.width+tile_count_slider.width/2+20+textWidth(tile_count_slider_label_text)*2, canvas.canvas.offsetTop+40-textLeading())
+
+	let controls_help = ["<b>Controls</b>:", "<b>Left Mouse</b>: set WALL", "<b>Right Mouse</b>: clear WALL", "<b>S</b>: set START", "<b>F</b>: set FINISH"]
+	for(let c = 0; c < controls_help.length; c++) {
+		let text_content = controls_help[c]
+		let text = createP(text_content)
+		text.position(canvas.canvas.offsetLeft-100, canvas.canvas.offsetTop+canvas.height-controls_help.length*30+c*30)
+	}
 }
 
 function draw() {
@@ -91,7 +105,7 @@ function draw() {
 		if(current.xy.equal(END.xy)) {
 			let curr = current;
 			let depth = 0;
-			while(curr !== undefined && depth < 50) {
+			while(curr !== undefined && depth < Infinity) {
 				FINAL_PATH.push(curr);
 				curr = curr.parent;
 				depth++;
@@ -176,17 +190,17 @@ function drawGridContent() {
 
 	// open
 	drawGridContentArr(OPEN.filter(i => i.wall !== true), true);
-	drawGridContentArrText(OPEN);
+	if(debug)drawGridContentArrText(OPEN);
 
 	// closed
 	fill(255, 0, 0)
 	drawGridContentArr(CLOSED);
-	drawGridContentArrText(CLOSED);
+	if(debug)drawGridContentArrText(CLOSED);
 
 	// final_path
 	fill(0, 255, 255)
 	drawGridContentArr(FINAL_PATH);
-	//drawGridContentArrText(FINAL_PATH);
+	if(debug)drawGridContentArrText(FINAL_PATH);
 
 	// start
 	fill(245, 212, 0)
@@ -198,7 +212,7 @@ function drawGridContent() {
 
 	// walls
 	drawGridContentArr(OPEN.filter(i => i.wall === true), true);
-	drawGridContentArrText(OPEN);
+	if(debug)drawGridContentArrText(OPEN);
 
 }
 function drawGridContentArr(arr, open_custom) {
@@ -212,9 +226,8 @@ function drawGridContentArr(arr, open_custom) {
 }
 function drawGridContentArrText(arr) {
 	for(let i = 0; i < arr.length; i++) {
-		if(debug && !arr[i].wall) {
+		if(!arr[i].wall)
 			drawText(round(arr[i].f_cost, 1), color(100, 100, 100), arr[i].xy.x * tile_size_x + tile_size_x/2, arr[i].xy.y*tile_size_y + tile_size_y, 12)
-		}
 	}
 }
 function drawTile(vec2) {
