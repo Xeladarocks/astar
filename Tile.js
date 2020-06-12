@@ -1,7 +1,7 @@
 
 let neighbor_directions = [ 
 	[-1, 0], [0, 1], [1, 0], [0, -1],
-	//[-1, 1], [1, 1], [1, -1], [-1, -1] 
+	[-1, 1], [1, 1], [1, -1], [-1, -1] 
 ]
 
 class Tile {
@@ -19,7 +19,7 @@ class Tile {
 	getNeighbours(bounds) {
 		let neighbor_arr = []
 
-		for(let nd = 0; nd < neighbor_directions.length; nd++) {
+		for(let nd = 0; nd < (allow_diagonal? 8 : 4); nd++) {
 			let new_xy = this.xy.add(neighbor_directions[nd])
 			if(new_xy.x < bounds.min_x || new_xy.x >= bounds.max_x || new_xy.y < bounds.min_y || new_xy.y >= bounds.max_y) continue;
 			

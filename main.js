@@ -1,15 +1,16 @@
 
 
 let debug = true;
-let tile_count = 10;
+let tile_count = 20;
 
 let canvas;
 let path_found = false;
 let playing = false;
+let allow_diagonal = true;
 let tile_size_x;
 let tile_size_y;
 
-const START = new Tile(new vec2(8, 8))
+const START = new Tile(new vec2(tile_count-2, tile_count-2))
 const END = new Tile(new vec2(2, 2))
 let OPEN = []
 let CLOSED = []
@@ -21,8 +22,8 @@ OPEN.push(START)
 let bounds = {
 	min_x: 0,
 	min_y: 0,
-	max_x: 10,
-	max_y: 10,
+	max_x: tile_count,
+	max_y: tile_count,
 }
 
 let slider1;
@@ -37,20 +38,40 @@ function setup() {
 	tile_size_y = canvas.height / tile_count
 
 	/* Input */
-	button = createButton('clear');
-	button.size(60, 25)
-	button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop);
-	button.mousePressed(clear_grid);
+	let clear_button = createButton('clear');
+	clear_button.size(60, 25)
+	clear_button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop);
+	clear_button.mousePressed(clear_grid);
 
 	play_pause_button = createButton('pause');
 	play_pause_button.size(60, 25)
 	play_pause_button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop+40);
 	play_pause_button.mousePressed(pause);
 
-	button = createButton('reset');
-	button.size(60, 25)
-	button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop+80);
-	button.mousePressed(reset);
+	let reset_button = createButton('reset');
+	reset_button.size(60, 25)
+	reset_button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop+80);
+	reset_button.mousePressed(reset);
+
+	let allow_diagonal_checkbox_text = "Allow Diagonal"
+	let allow_diagonal_checkbox = createCheckbox(allow_diagonal_checkbox_text, allow_diagonal);
+	allow_diagonal_checkbox.position(canvas.canvas.offsetLeft+canvas.width+textWidth(allow_diagonal_checkbox_text), canvas.canvas.offsetTop)
+	allow_diagonal_checkbox.changed(() => {
+		allow_diagonal = !allow_diagonal
+	});
+
+	let tile_count_slider = createSlider(10, 50, tile_count);
+	tile_count_slider.position(canvas.canvas.offsetLeft+canvas.width+tile_count_slider.width/2+20, canvas.canvas.offsetTop+40);
+	tile_count_slider.input((val) => {
+		tile_count = tile_count_slider.value()
+		tile_size_x = canvas.width / tile_count
+		tile_size_y = canvas.height / tile_count
+		bounds.max_x = bounds.max_y = tile_count
+	})
+
+	let tile_count_slider_label_text = "Tile Count"
+	let tile_count_slider_label = createP(tile_count_slider_label_text)
+	tile_count_slider_label.position(canvas.canvas.offsetLeft+canvas.width+tile_count_slider.width/2+20+textWidth(tile_count_slider_label_text)*2, canvas.canvas.offsetTop+40-textLeading())
 }
 
 function draw() {
@@ -118,7 +139,13 @@ function mouseDragged() {
 			OPEN.splice(idx, 1)
 		}
 	}
-
+}
+function keyPressed() {
+	if(keyCode === 83) { // s
+		START.xy = new vec2(int(mouseX / tile_size_x, 0), int(mouseY / tile_size_y));
+	} else if(keyCode === 70) { // f
+		END.xy = new vec2(int(mouseX / tile_size_x, 0), int(mouseY / tile_size_y));
+	}
 }
 function play() {
 	playing = false
