@@ -33,7 +33,7 @@ class Tile {
 
 
 	static getLowestF(arr) {
-		var lowest = new Tile(new vec2(8, 0), undefined, Infinity)
+		var lowest = new Tile(new vec2(Infinity, Infinity), undefined, Infinity)
 		var lowest_idx = -1
 		for (let i = 0; i < arr.length; i++) {
 			let tmp = arr[i]
@@ -42,6 +42,7 @@ class Tile {
 				lowest_idx = i
 			}
 		}
+		if(lowest.xy.x === Infinity) return [-1, -1]
 		return [lowest, lowest_idx]
 	}
 }

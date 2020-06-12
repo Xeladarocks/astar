@@ -28,8 +28,6 @@ let bounds = {
 	max_y: tile_count,
 }
 
-let slider1;
-let slider1_label_text = "G Scalar"
 function setup() {
 	canvas = createCanvas(640, 640)
 	//canvas.mouseDragged(mousePressedEvent);
@@ -40,42 +38,49 @@ function setup() {
 	tile_size_y = canvas.height / tile_count
 
 	/* Input */
-	let clear_button = createButton('replay');
+	let clear_button = createButton('Replay');
 	clear_button.size(undefined, 25)
 	clear_button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop);
 	clear_button.mousePressed(clear_grid);
 
-	play_pause_button = createButton('pause');
+	play_pause_button = createButton('Pause');
 	play_pause_button.size(undefined, 25)
 	play_pause_button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop+40);
 	play_pause_button.mousePressed(pause);
 
-	let reset_button = createButton('clear all');
+	let reset_button = createButton('Clear All');
 	reset_button.size(undefined, 25)
 	reset_button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop+80);
 	reset_button.mousePressed(reset);
+
+	let noisify_button_text = 'Noisify'
+	let noisify_button = createButton(noisify_button_text);
+	noisify_button.size(undefined, 25)
+	noisify_button.position(canvas.canvas.offsetLeft+canvas.width+textWidth(noisify_button_text)+13, canvas.canvas.offsetTop+80);
+	noisify_button.mousePressed(() => {
+		reset();
+		noisify_grid();
+		updateTileMap();
+	});
 
 	let allow_diagonal_checkbox_text = "Allow Diagonal"
 	let allow_diagonal_checkbox = createCheckbox(allow_diagonal_checkbox_text, allow_diagonal);
 	allow_diagonal_checkbox.position(canvas.canvas.offsetLeft+canvas.width+textWidth(allow_diagonal_checkbox_text), canvas.canvas.offsetTop)
 	allow_diagonal_checkbox.changed(() => {
-		allow_diagonal = !allow_diagonal
+		allow_diagonal = !allow_diagonal;
 	});
 
 	let debug_checkbox_text = "Debug"
 	let debug_checkbox = createCheckbox(debug_checkbox_text, debug);
 	debug_checkbox.position(canvas.canvas.offsetLeft+canvas.width+textWidth(debug_checkbox_text), canvas.canvas.offsetTop+canvas.height-debug_checkbox.height)
 	debug_checkbox.changed(() => {
-		debug = !debug
+		debug = !debug;
 	});
 
 	let tile_count_slider = createSlider(10, 50, tile_count);
 	tile_count_slider.position(canvas.canvas.offsetLeft+canvas.width+tile_count_slider.width/2+20, canvas.canvas.offsetTop+40);
 	tile_count_slider.input(() => {
-		tile_count = tile_count_slider.value()
-		tile_size_x = canvas.width / tile_count
-		tile_size_y = canvas.height / tile_count
-		bounds.max_x = bounds.max_y = tile_count
+		updateTileMap(tile_count_slider.value())
 	})
 
 	let tile_count_slider_label_text = "Tile Count"
@@ -96,46 +101,50 @@ function draw() {
 
 	if(!path_found && !playing) {
 		let [current, current_idx] = Tile.getLowestF(OPEN);
-		let closed_idx = vec2.getArrIndex(CLOSED, current.xy)
-		if (current_idx > -1) {
-			OPEN.splice(current_idx, 1);
-		} else console.log("OPEN empty")
-		if(closed_idx === -1) {
-			CLOSED.push(current)
-		}
-
-		if(current.xy.equal(END.xy)) {
-			let curr = current;
-			let depth = 0;
-			while(curr !== undefined && depth < Infinity) {
-				FINAL_PATH.push(curr);
-				curr = curr.parent;
-				depth++;
+		if(current_idx === -1) 
+			console.log("OPEN empty")
+		else {
+			let closed_idx = vec2.getArrIndex(CLOSED, current.xy)
+			if (current_idx > -1) {
+				OPEN.splice(current_idx, 1);
+			} else console.log("OPEN empty")
+			if(closed_idx === -1) {
+				CLOSED.push(current)
 			}
-			path_found = true;
-		}
 
-		let neighbor_arr = current.getNeighbours(bounds)
-		for(let n = 0; n < neighbor_arr.length; n++) {
-			let neighbor = neighbor_arr[n];
-			let n_idx = vec2.getArrIndex(OPEN, neighbor.xy);
-
-			if(vec2.getArrIndex(CLOSED, neighbor.xy) !== -1) continue;
-
-			let new_g = current.g_cost + current.xy.distance(neighbor.xy)
-			if(n_idx !== -1) { // pre-existing
-				if(new_g < OPEN[n_idx].g_cost) { // better path!
-					OPEN[n_idx].g_cost = new_g
-					OPEN[n_idx].h_cost = neighbor.xy.distance(END.xy)
-					OPEN[n_idx].f_cost = neighbor.g_cost + neighbor.h_cost
-					OPEN[n_idx].parent = current
+			if(current.xy.equal(END.xy)) {
+				let curr = current;
+				let depth = 0;
+				while(curr !== undefined && depth < Infinity) {
+					FINAL_PATH.push(curr);
+					curr = curr.parent;
+					depth++;
 				}
-			} else { // new
-				neighbor.g_cost = new_g
-				neighbor.h_cost = neighbor.xy.distance(END.xy)
-				neighbor.f_cost = neighbor.g_cost + neighbor.h_cost
-				neighbor.parent = current
-				if(vec2.getArrIndex(OPEN, neighbor.xy) === -1) OPEN.push(neighbor)
+				path_found = true;
+			}
+
+			let neighbor_arr = current.getNeighbours(bounds)
+			for(let n = 0; n < neighbor_arr.length; n++) {
+				let neighbor = neighbor_arr[n];
+				let n_idx = vec2.getArrIndex(OPEN, neighbor.xy);
+
+				if(vec2.getArrIndex(CLOSED, neighbor.xy) !== -1) continue;
+
+				let new_g = current.g_cost + current.xy.distance(neighbor.xy)
+				if(n_idx !== -1) { // pre-existing
+					if(new_g < OPEN[n_idx].g_cost) { // better path!
+						OPEN[n_idx].g_cost = new_g
+						OPEN[n_idx].h_cost = neighbor.xy.distance(END.xy)
+						OPEN[n_idx].f_cost = neighbor.g_cost + neighbor.h_cost
+						OPEN[n_idx].parent = current
+					}
+				} else { // new
+					neighbor.g_cost = new_g
+					neighbor.h_cost = neighbor.xy.distance(END.xy)
+					neighbor.f_cost = neighbor.g_cost + neighbor.h_cost
+					neighbor.parent = current
+					if(vec2.getArrIndex(OPEN, neighbor.xy) === -1) OPEN.push(neighbor)
+				}
 			}
 		}
 	}
@@ -166,12 +175,12 @@ function keyPressed() {
 function play() {
 	playing = false
 	play_pause_button.mousePressed(pause);
-	play_pause_button.elt.innerHTML = "pause"
+	play_pause_button.elt.innerHTML = "Pause"
 }
 function pause() {
 	playing = true
 	play_pause_button.mousePressed(play);
-	play_pause_button.elt.innerHTML = "play"
+	play_pause_button.elt.innerHTML = "Play"
 }
 function clear_grid() {
 	path_found = false
@@ -186,6 +195,24 @@ function reset() {
 	OPEN.push(START);
 	CLOSED = []
 	FINAL_PATH = []
+}
+function updateTileMap(tc) {
+	if(tc !== undefined) {
+		tile_count = tc
+		tile_size_x = canvas.width / tile_count
+		tile_size_y = canvas.height / tile_count
+	}
+	bounds.max_x = bounds.max_y = tile_count
+}
+function noisify_grid() {
+	let d = new Date();
+	noiseSeed(d.getTime())
+	for(let x = 0; x < tile_count; x++) {
+		for(let y = 0; y < tile_count; y++) {
+			let new_xy = new vec2(x, y)
+			if(noise(int(x/1.5), int(y/1.5)) > 0.6 && !new_xy.equal(START.xy) && !new_xy.equal(END.xy)) OPEN.push(new Tile(new vec2(x, y), undefined, Infinity, true))
+		}
+	}
 }
 function drawGridContent() {
 	strokeWeight(0)
