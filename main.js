@@ -10,6 +10,8 @@ let allow_diagonal = true;
 let tile_size_x;
 let tile_size_y;
 
+let path_found_alpha = 0.2
+
 const START = new Tile(new vec2(tile_count-2, tile_count-2))
 const END = new Tile(new vec2(2, 2))
 let OPEN = []
@@ -38,18 +40,18 @@ function setup() {
 	tile_size_y = canvas.height / tile_count
 
 	/* Input */
-	let clear_button = createButton('clear');
-	clear_button.size(60, 25)
+	let clear_button = createButton('replay');
+	clear_button.size(undefined, 25)
 	clear_button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop);
 	clear_button.mousePressed(clear_grid);
 
 	play_pause_button = createButton('pause');
-	play_pause_button.size(60, 25)
+	play_pause_button.size(undefined, 25)
 	play_pause_button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop+40);
 	play_pause_button.mousePressed(pause);
 
-	let reset_button = createButton('reset');
-	reset_button.size(60, 25)
+	let reset_button = createButton('clear all');
+	reset_button.size(undefined, 25)
 	reset_button.position(canvas.canvas.offsetLeft-40, canvas.canvas.offsetTop+80);
 	reset_button.mousePressed(reset);
 
@@ -80,7 +82,7 @@ function setup() {
 	let tile_count_slider_label = createP(tile_count_slider_label_text)
 	tile_count_slider_label.position(canvas.canvas.offsetLeft+canvas.width+tile_count_slider.width/2+20+textWidth(tile_count_slider_label_text)*2, canvas.canvas.offsetTop+40-textLeading())
 
-	let controls_help = ["<b>Controls</b>:", "<b>Left Mouse</b>: set WALL", "<b>Right Mouse</b>: clear WALL", "<b>S</b>: set START", "<b>F</b>: set FINISH"]
+	let controls_help = ["<b>Controls</b>:", "<b>Left Mouse</b>: set <b><span style='color: rgb(125, 125, 125)'>WALL</span></b>", "<b>Right Mouse</b>: clear <b><span style='color: rgb(125, 125, 125)'>WALL</span></b>", "<b>S</b>: set <b><span style='color: rgb(245, 212, 0)'>START</span></b>", "<b>F</b>: set <b><span style='color: rgb(168, 0, 224)'>FINISH</span></b>"]
 	for(let c = 0; c < controls_help.length; c++) {
 		let text_content = controls_help[c]
 		let text = createP(text_content)
@@ -90,7 +92,7 @@ function setup() {
 
 function draw() {
 	clear()
-	background(255)
+	background(235)
 
 	if(!path_found && !playing) {
 		let [current, current_idx] = Tile.getLowestF(OPEN);
@@ -193,12 +195,13 @@ function drawGridContent() {
 	if(debug)drawGridContentArrText(OPEN);
 
 	// closed
-	fill(255, 0, 0)
+	fill("rgba(255, 0, 0, "+(path_found?path_found_alpha:1)+")")
 	drawGridContentArr(CLOSED);
 	if(debug)drawGridContentArrText(CLOSED);
 
+
 	// final_path
-	fill(0, 255, 255)
+	fill(64, 105, 224)
 	drawGridContentArr(FINAL_PATH);
 	if(debug)drawGridContentArrText(FINAL_PATH);
 
@@ -207,7 +210,7 @@ function drawGridContent() {
 	drawTile(START.xy)
 
 	// finish
-	fill(96, 50, 168)
+	fill(168, 0, 224)
 	drawTile(END.xy)
 
 	// walls
@@ -218,8 +221,8 @@ function drawGridContent() {
 function drawGridContentArr(arr, open_custom) {
 	for(let i = 0; i < arr.length; i++) {
 		if(open_custom) {
-			if(arr[i].wall)fill(125, 125, 125)
-			else fill(0, 255, 0)
+			if(arr[i].wall) fill(125, 125, 125) // wall
+			else fill("rgba(0, 255, 0, "+(path_found?path_found_alpha:1)+")")
 		}
 		drawTile(arr[i].xy)
 	}
