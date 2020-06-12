@@ -10,7 +10,7 @@ let allow_diagonal = true;
 let tile_size_x;
 let tile_size_y;
 
-let path_found_alpha = 0.2
+let path_found_alpha = 0.15
 
 const START = new Tile(new vec2(tile_count-2, tile_count-2))
 const END = new Tile(new vec2(2, 2))
